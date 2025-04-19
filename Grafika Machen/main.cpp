@@ -1,5 +1,6 @@
 #include "objects.h"
-#define ZAKRES 4
+#define ZAKRES 5
+#define ZASIEG 10
 
 
 const GLfloat light_ambient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -12,11 +13,11 @@ const GLfloat mat_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 const GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 const GLfloat high_shininess[] = { 100.0f };
 
-void display();
+Vector3d cam_pos = { 0,0,0 };
+Vector3d cam_rot = { 0,0,0 };
 
 int main(void)
 {
-	//*
 	GLFWwindow* window;
 
 	if (!glfwInit())
@@ -49,8 +50,7 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	Object obj("C:\\Users\\jacob\\Desktop\\untitled3.obj");
-
+	Object obj("C:\\Users\\jacob\\Desktop\\untitled3.obj", { 0,0,0 });
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -62,20 +62,23 @@ int main(void)
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 
+
 		if (width < height && width > 0)
-			glOrtho(-ZAKRES, ZAKRES, -ZAKRES * height / width, ZAKRES * height / width, -ZAKRES, ZAKRES);
+			glOrtho(-ZAKRES, ZAKRES, -ZAKRES * height / width, ZAKRES * height / width, -ZASIEG, ZASIEG);
 		else if (width >= height && height > 0)
-			glOrtho(-ZAKRES * width / height, ZAKRES * width / height, -ZAKRES, ZAKRES, -ZAKRES, ZAKRES);
+			glOrtho(-ZAKRES * width / height, ZAKRES * width / height, -ZAKRES, ZAKRES, -ZASIEG, ZASIEG);
 		
+
 		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity(); 
+		glLoadIdentity(); 		
+		
 		glColor3d(1, 0, 0);
 		
 		double t = glfwGetTime();
 
-		glRotated(45, 1, 0, 0);
-		glRotated(45 * t, 0, 1, 0);
+		glRotated(20, 1, 0, 0);
 
+		obj.GetTransform().SetRotation({ 0,45 * t, -15 * t });
 		obj.Display();
 
 		glClearColor(1, 1, 1, 1);
@@ -86,6 +89,6 @@ int main(void)
 	}
 
 	glfwTerminate();
-	//*/
+
 	return 0;
 }
