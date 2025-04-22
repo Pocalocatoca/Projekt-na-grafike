@@ -1,6 +1,6 @@
 #include "objects.h"
-#define ZAKRES 5
-#define ZASIEG 10
+#define ZAKRES 20
+#define ZASIEG 30
 
 
 const GLfloat light_ambient[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -50,7 +50,16 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	Object obj("C:\\Users\\jacob\\Desktop\\untitled3.obj", { 0,0,0 });
+	Object ent1(Entablature, { 0,PILLAR_HEIGHT,0 }, {}, { 12,1,10 });
+	Object ent2(Entablature, { 0,-ENTABLATURE_HEIGHT,0 }, {}, { 12,1,10 });
+	Object pil1(Pillar, { 5,0,4 }, {}, { 2,1,2 });
+	Object pil2(Pillar, { 5,0,-4 }, {}, { 2,1,2 });
+	Object pil3(Pillar, { -5,0,-4 }, {}, { 2,1,2 });
+	Object pil4(Pillar, { -5,0,4 }, {}, { 2,1,2 });
+	Object pil5(Pillar, { 5,0,0 }, {}, { 2,1,2 });
+	Object pil6(Pillar, { -5,0,0 }, {}, { 2,1,2 });
+	Object box1(Box, {0,PILLAR_HEIGHT/2,-0.5}, {}, { 8,PILLAR_HEIGHT,9 });
+	Object face(ClockFace, { 0,5.75,4 }, {90,0,0}, {8,8,8});
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -67,19 +76,31 @@ int main(void)
 			glOrtho(-ZAKRES, ZAKRES, -ZAKRES * height / width, ZAKRES * height / width, -ZASIEG, ZASIEG);
 		else if (width >= height && height > 0)
 			glOrtho(-ZAKRES * width / height, ZAKRES * width / height, -ZAKRES, ZAKRES, -ZASIEG, ZASIEG);
-		
+
 
 		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity(); 		
-		
+		glLoadIdentity();
+
 		glColor3d(1, 0, 0);
-		
+
 		double t = glfwGetTime();
 
 		glRotated(20, 1, 0, 0);
 
-		obj.GetTransform().SetRotation({ 0,45 * t, -15 * t });
-		obj.Display();
+		glRotated(35 * cos(t), 1, 0, 0);
+		glRotated(35 * sin(t), 0, 0, 1);
+		glRotated(35 * t, 0, 1, 0);
+		ent1.Display();
+		ent2.Display();
+		pil1.Display();
+		pil2.Display();
+		pil3.Display();
+		pil4.Display();
+		pil5.Display();
+		pil6.Display();
+		box1.Display();
+
+		face.Display();
 
 		glClearColor(1, 1, 1, 1);
 		glfwSwapBuffers(window);

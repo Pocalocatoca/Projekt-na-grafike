@@ -5,6 +5,15 @@
 #include <sstream>
 #include <cstdlib>
 
+#define PI 3.1415
+
+#define CLOCKFACE_SEGMENTS 36
+#define CLOCKFACE_RADIUS 0.9
+
+#define PILLAR_HEIGHT 10
+#define PILLAR_SEGMENTS 24
+
+#define ENTABLATURE_HEIGHT 1.5
 
 using namespace std;
 
@@ -12,7 +21,8 @@ enum DefaultObject
 {
 	Box,
 	ClockFace,
-	Arrow
+	Pillar,
+	Entablature
 };
 
 struct Vector3d
@@ -66,6 +76,7 @@ public:
 		glRotated(_rotation.x, 1, 0, 0);
 		glRotated(_rotation.y, 0, 1, 0);
 		glRotated(_rotation.z, 0, 0, 1);
+		glScaled(_scale.x, _scale.y, _scale.z );
 	}
 };
 
@@ -125,20 +136,201 @@ public:
 			};
 		}
 		break;
-		
+
 		case ClockFace:
 		{
 
-		}
-		break;
-		
-		case Arrow:
-		{
+			for (unsigned i = 0; i < CLOCKFACE_SEGMENTS; i++)
+			{
 
+				double t_cos = cos(PI * i * 2 / CLOCKFACE_SEGMENTS) / 2;
+				double t_sin = sin(PI * i * 2 / CLOCKFACE_SEGMENTS) / 2;
+
+				_vertices.push_back({ t_cos,0,t_sin });
+				_vertices.push_back({ t_cos,0.1,t_sin });
+				_vertices.push_back({ t_cos * CLOCKFACE_RADIUS,0.05,t_sin * CLOCKFACE_RADIUS });
+				_vertices.push_back({ t_cos * CLOCKFACE_RADIUS,0.1,t_sin * CLOCKFACE_RADIUS });
+				
+				_normals.push_back({ t_cos,0,t_sin });
+				_normals.push_back({ -t_cos,0,-t_sin });
+				
+				_indices.push_back({ 4 * i,2 * i });
+				_indices.push_back({ 4 * i + 1,2 * i });
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1,2 * ((i + 1) % CLOCKFACE_SEGMENTS) });
+
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1,2 * ((i + 1) % CLOCKFACE_SEGMENTS) });
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS),2 * ((i + 1) % CLOCKFACE_SEGMENTS) });
+				_indices.push_back({ 4 * i,2 * i });
+
+				_indices.push_back({ 4 * i + 1,2 * CLOCKFACE_SEGMENTS });
+				_indices.push_back({ 4 * i + 3,2 * CLOCKFACE_SEGMENTS });
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * CLOCKFACE_SEGMENTS });
+
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * CLOCKFACE_SEGMENTS });
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1,2 * CLOCKFACE_SEGMENTS });
+				_indices.push_back({ 4 * i + 1,2 * CLOCKFACE_SEGMENTS });
+
+				_indices.push_back({ 4 * i + 2,2 * i + 1});
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1 });
+				_indices.push_back({ 4 * i + 3,2 * i + 1 });
+
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1 });
+				_indices.push_back({ 4 * i + 2,2 * i + 1 });
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 2,2 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1 });
+
+				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 2,2 * CLOCKFACE_SEGMENTS });
+				_indices.push_back({ 4 * i + 2,2 * CLOCKFACE_SEGMENTS });
+				_indices.push_back({ 4 * CLOCKFACE_SEGMENTS,2 * CLOCKFACE_SEGMENTS });
+			}
+			_vertices.push_back({ 0,0.05,0 });
+			_normals.push_back({ 0,1,0 });
 		}
 		break;
 		
-		default:
+		case Pillar:
+		{
+			for (unsigned i = 0; i < PILLAR_SEGMENTS; i++)
+			{
+				double t_cos = cos(PI * i * 2 / PILLAR_SEGMENTS) / 2;
+				double t_sin = sin(PI * i * 2 / PILLAR_SEGMENTS) / 2;
+
+				_vertices.push_back({ t_cos, PILLAR_HEIGHT, t_sin });
+				_vertices.push_back({ t_cos, PILLAR_HEIGHT - 0.2, t_sin });
+				_vertices.push_back({ 0.8 * t_cos, PILLAR_HEIGHT - 0.4, 0.8 * t_sin });
+				_vertices.push_back({ 0.8 * t_cos, 0.4, 0.8 * t_sin });
+				_vertices.push_back({ t_cos, 0.2, t_sin });
+				_vertices.push_back({ t_cos, 0, t_sin });
+			
+				_normals.push_back({ t_cos, 0, t_sin });
+				_normals.push_back({ t_cos, -1, t_sin });
+				_normals.push_back({ t_cos, 1, t_sin });
+			}
+			for (unsigned i = 0; i < PILLAR_SEGMENTS; i++)
+			{
+				_indices.push_back({ 6 * i + 1, 3 * i });
+				_indices.push_back({ 6 * i,3 * i });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS), 3 * ((i + 1) % PILLAR_SEGMENTS) });
+
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS), 3 * ((i + 1) % PILLAR_SEGMENTS) });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 1, 3 * ((i + 1) % PILLAR_SEGMENTS) });
+				_indices.push_back({ 6 * i + 1, 3 * i });
+			
+				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
+				_indices.push_back({ 6 * i + 1,3 * i + 1 });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 1, 3 * ((i + 1) % PILLAR_SEGMENTS) + 1 });
+
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 1, 3 * ((i + 1) % PILLAR_SEGMENTS) + 1 });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 2, 3 * ((i + 1) % PILLAR_SEGMENTS) + 1 });
+				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
+				
+				_indices.push_back({ 6 * i + 3, 3 * i });
+				_indices.push_back({ 6 * i + 2,3 * i });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 2, 3 * ((i + 1) % PILLAR_SEGMENTS) });
+
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 2, 3 * ((i + 1) % PILLAR_SEGMENTS) });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 3, 3 * ((i + 1) % PILLAR_SEGMENTS) });
+				_indices.push_back({ 6 * i + 3, 3 * i });
+				
+				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
+				_indices.push_back({ 6 * i + 3,3 * i + 2 });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 3, 3 * ((i + 1) % PILLAR_SEGMENTS) + 2 });
+
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 3, 3 * ((i + 1) % PILLAR_SEGMENTS) + 2 });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 4, 3 * ((i + 1) % PILLAR_SEGMENTS) + 2 });
+				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
+
+				_indices.push_back({ 6 * i + 5, 3 * i });
+				_indices.push_back({ 6 * i + 4,3 * i });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 4, 3 * ((i + 1) % PILLAR_SEGMENTS) });
+
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 4, 3 * ((i + 1) % PILLAR_SEGMENTS) });
+				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 5, 3 * ((i + 1) % PILLAR_SEGMENTS) });
+				_indices.push_back({ 6 * i + 5, 3 * i });
+			}
+		}
+		break;
+
+		case Entablature:
+		{
+			for (unsigned i = 0; i < 4; i++)
+			{
+				double t_cos = cos(PI * (i-0.5) / 2) / sqrt(2);
+				double t_sin = sin(PI * (i-0.5) / 2) / sqrt(2);
+				double t_cos_n = cos(PI * i / 2);
+				double t_sin_n = sin(PI * i / 2);
+
+				_vertices.push_back({ t_cos, ENTABLATURE_HEIGHT, t_sin });
+				_vertices.push_back({ t_cos, ENTABLATURE_HEIGHT - 0.2, t_sin });
+				_vertices.push_back({ 0.95 * t_cos, ENTABLATURE_HEIGHT - 0.25, 0.95 * t_sin });
+				_vertices.push_back({ 0.95 * t_cos, 0.25, 0.95 * t_sin });
+				_vertices.push_back({ t_cos, 0.2, t_sin });
+				_vertices.push_back({ t_cos, 0, t_sin });
+
+				_normals.push_back({ t_cos_n, 0, t_sin_n });
+				_normals.push_back({ t_cos_n, -1, t_sin_n });
+				_normals.push_back({ t_cos_n, 1, t_sin_n });
+			}
+			for (unsigned i = 0; i < 4; i++)
+			{
+				_indices.push_back({ 6 * i + 1, 3 * i });
+				_indices.push_back({ 6 * i,3 * i });
+				_indices.push_back({ 6 * ((i + 1) % 4), 3 * i });
+
+				_indices.push_back({ 6 * ((i + 1) % 4), 3 * i });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 1, 3 * i });
+				_indices.push_back({ 6 * i + 1, 3 * i });
+
+				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
+				_indices.push_back({ 6 * i + 1,3 * i + 1 });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 1, 3 * i + 1 });
+
+				_indices.push_back({ 6 * ((i + 1) % 4) + 1, 3 * i + 1 });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 2, 3 * i + 1 });
+				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
+
+				_indices.push_back({ 6 * i + 3, 3 * i });
+				_indices.push_back({ 6 * i + 2,3 * i });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 2, 3 * i });
+
+				_indices.push_back({ 6 * ((i + 1) % 4) + 2, 3 * i });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 3, 3 * i });
+				_indices.push_back({ 6 * i + 3, 3 * i });
+
+				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
+				_indices.push_back({ 6 * i + 3,3 * i + 2 });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 3, 3 * i + 2 });
+
+				_indices.push_back({ 6 * ((i + 1) % 4) + 3, 3 * i + 2 });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 4, 3 * i + 2 });
+				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
+
+				_indices.push_back({ 6 * i + 5, 3 * i });
+				_indices.push_back({ 6 * i + 4,3 * i });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 4, 3 * i });
+
+				_indices.push_back({ 6 * ((i + 1) % 4) + 4, 3 * i });
+				_indices.push_back({ 6 * ((i + 1) % 4) + 5, 3 * i });
+				_indices.push_back({ 6 * i + 5, 3 * i });
+			}
+			_normals.push_back({ 0,1,0 }); //12
+			_normals.push_back({ 0,-1,0 }); //13
+
+			_indices.push_back({ 12,12 });
+			_indices.push_back({ 6,12 });
+			_indices.push_back({ 0,12 });
+
+			_indices.push_back({ 0,12 });
+			_indices.push_back({ 18,12 });
+			_indices.push_back({ 12,12 });
+
+			_indices.push_back({ 5,13 });
+			_indices.push_back({ 11,13 });
+			_indices.push_back({ 17,13 });
+
+			_indices.push_back({ 5,13 });
+			_indices.push_back({ 17,13 });
+			_indices.push_back({ 23,13 });
+		}
 		break;
 		}
 	}
@@ -238,7 +430,7 @@ public:
 		{
 			Vector3d normal = _normals[index.normal];
 			Vector3d vertex = _vertices[index.vertex];
-			
+
 			glNormal3d(normal.x, normal.y, normal.z);
 			glVertex3d(vertex.x, vertex.y, vertex.z);
 		}
