@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <ctime>
 
 #define PI 3.1415
 
@@ -14,6 +15,8 @@
 #define PILLAR_SEGMENTS 24
 
 #define ENTABLATURE_HEIGHT 1.5
+
+#define ARROW_THICKNESS 0.5
 
 using namespace std;
 
@@ -334,6 +337,7 @@ public:
 		break;
 		}
 	}
+
 	Object(string filename, Vector3d position = { 0,0,0 }, Vector3d rotation = { 0,0,0 }, Vector3d scale = { 1,1,1 }) : _transform(position, rotation, scale)
 	{
 		fstream file(filename);
