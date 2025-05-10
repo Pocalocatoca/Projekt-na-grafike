@@ -11,10 +11,12 @@
 #define CLOCKFACE_SEGMENTS 36
 #define CLOCKFACE_RADIUS 0.9
 
-#define PILLAR_HEIGHT 10
-#define PILLAR_SEGMENTS 24
+#define PILLAR_BASE_H 0.1
+#define PILLAR_BODY_R 0.8
+#define PILLAR_SEGMENTS 36
 
-#define ENTABLATURE_HEIGHT 1.5
+#define ENTABLATURE_INDENT_H 0.8
+#define ENTABLATURE_INDENT_D 0.95
 
 #define ARROW_THICKNESS 0.5
 
@@ -28,6 +30,12 @@ enum DefaultObject
 	Entablature
 };
 
+struct Vector2d
+{
+	double x;
+	double y;
+};
+
 struct Vector3d
 {
 	double x;
@@ -38,6 +46,7 @@ struct Vector3d
 struct face_index
 {
 	unsigned vertex;
+	unsigned texture;
 	unsigned normal;
 };
 
@@ -87,6 +96,7 @@ class Object
 {
 	Transform _transform;
 	std::vector<Vector3d> _vertices;
+	std::vector<Vector2d> _textures;
 	std::vector<Vector3d> _normals;
 	std::vector<face_index> _indices;
 
@@ -96,97 +106,45 @@ public:
 	{
 		switch (type)
 		{
-		
+
 		case Box:
 		{
 			_vertices = {
-				{-0.5,-0.5,-0.5},
-				{-0.5,-0.5,0.5},
-				{-0.5,0.5,0.5},
-				{-0.5,0.5,-0.5},
+				{0.5,0.5,-0.5},
 				{0.5,-0.5,-0.5},
+				{-0.5,-0.5,-0.5},
+				{-0.5,0.5,-0.5},
+
+				{-0.5,0.5,0.5},
+				{-0.5,-0.5,0.5},
 				{0.5,-0.5,0.5},
-				{0.5,0.5,0.5},
-				{0.5,0.5,-0.5}
+				{0.5,0.5,0.5}
+			};
+			_textures = {
+				{0,0}, {0,1}, {1,1}, {1,0}
 			};
 			_normals = {
-				{1,0,0},
-				{-1,0,0},
-				{0,1,0},
-				{0,-1,0},
-				{0,0,1},
-				{0,0,-1}
+				{0,0,-1}, {0,0,1}, {0,-1,0}, {0,1,0}, {-1,0,0}, {1,0,0}
 			};
 			_indices = {
-				// +x face
-				{4,0}, {6,0}, {5,0},
-				{4,0}, {7,0}, {6,0},
-				// -x face
-				{0,1}, {1,1}, {2,1},
-				{2,1}, {3,1}, {0,1},
-				// +y face
-				{2,2}, {6,2}, {3,2},
-				{3,2}, {6,2}, {7,2},
-				// -y face
-				{1,3}, {0,3}, {5,3},
-				{5,3}, {0,3}, {4,3},
-				// +z face
-				{2,4}, {1,4}, {5,4},
-				{2,4}, {5,4}, {6,4},
-				// -z face
-				{0,5}, {3,5}, {4,5},
-				{4,5}, {3,5}, {7,5}
+				{2,1,2}, {1,2,2}, {6,3,2},
+				{6,3,2}, {5,0,2}, {2,1,2},
+
+				{3,0,3}, {4,1,3}, {7,2,3},
+				{7,2,3}, {0,3,3}, {3,0,3},
+
+				{7,0,5}, {6,1,5}, {1,2,5},
+				{1,2,5}, {0,3,5}, {7,0,5},
+
+				{3,0,4}, {2,1,4}, {5,2,4},
+				{5,2,4}, {4,3,4}, {3,0,4},
+
+				{4,0,1}, {5,1,1}, {6,2,1},
+				{6,2,1}, {7,3,1}, {4,0,1},
+
+				{0,0,0}, {1,1,0}, {2,2,0},
+				{2,2,0}, {3,3,0}, {0,0,0}
 			};
-		}
-		break;
-
-		case ClockFace:
-		{
-
-			for (unsigned i = 0; i < CLOCKFACE_SEGMENTS; i++)
-			{
-
-				double t_cos = cos(PI * i * 2 / CLOCKFACE_SEGMENTS) / 2;
-				double t_sin = sin(PI * i * 2 / CLOCKFACE_SEGMENTS) / 2;
-
-				_vertices.push_back({ t_cos,0,t_sin });
-				_vertices.push_back({ t_cos,0.1,t_sin });
-				_vertices.push_back({ t_cos * CLOCKFACE_RADIUS,0.05,t_sin * CLOCKFACE_RADIUS });
-				_vertices.push_back({ t_cos * CLOCKFACE_RADIUS,0.1,t_sin * CLOCKFACE_RADIUS });
-				
-				_normals.push_back({ t_cos,0,t_sin });
-				_normals.push_back({ -t_cos,0,-t_sin });
-				
-				_indices.push_back({ 4 * i,2 * i });
-				_indices.push_back({ 4 * i + 1,2 * i });
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1,2 * ((i + 1) % CLOCKFACE_SEGMENTS) });
-
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1,2 * ((i + 1) % CLOCKFACE_SEGMENTS) });
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS),2 * ((i + 1) % CLOCKFACE_SEGMENTS) });
-				_indices.push_back({ 4 * i,2 * i });
-
-				_indices.push_back({ 4 * i + 1,2 * CLOCKFACE_SEGMENTS });
-				_indices.push_back({ 4 * i + 3,2 * CLOCKFACE_SEGMENTS });
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * CLOCKFACE_SEGMENTS });
-
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * CLOCKFACE_SEGMENTS });
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1,2 * CLOCKFACE_SEGMENTS });
-				_indices.push_back({ 4 * i + 1,2 * CLOCKFACE_SEGMENTS });
-
-				_indices.push_back({ 4 * i + 2,2 * i + 1});
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1 });
-				_indices.push_back({ 4 * i + 3,2 * i + 1 });
-
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 3,2 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1 });
-				_indices.push_back({ 4 * i + 2,2 * i + 1 });
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 2,2 * ((i + 1) % CLOCKFACE_SEGMENTS) + 1 });
-
-				_indices.push_back({ 4 * ((i + 1) % CLOCKFACE_SEGMENTS) + 2,2 * CLOCKFACE_SEGMENTS });
-				_indices.push_back({ 4 * i + 2,2 * CLOCKFACE_SEGMENTS });
-				_indices.push_back({ 4 * CLOCKFACE_SEGMENTS,2 * CLOCKFACE_SEGMENTS });
-			}
-			_vertices.push_back({ 0,0.05,0 });
-			_normals.push_back({ 0,1,0 });
 		}
 		break;
 		
@@ -194,145 +152,206 @@ public:
 		{
 			for (unsigned i = 0; i < PILLAR_SEGMENTS; i++)
 			{
-				double t_cos = cos(PI * i * 2 / PILLAR_SEGMENTS) / 2;
-				double t_sin = sin(PI * i * 2 / PILLAR_SEGMENTS) / 2;
+				double cos_a = cos(2 * PI * i / PILLAR_SEGMENTS)/2;
+				double sin_a = sin(2 * PI * i / PILLAR_SEGMENTS)/2;
+				unsigned ig = (i + 1) % PILLAR_SEGMENTS;
 
-				_vertices.push_back({ t_cos, PILLAR_HEIGHT, t_sin });
-				_vertices.push_back({ t_cos, PILLAR_HEIGHT - 0.2, t_sin });
-				_vertices.push_back({ 0.8 * t_cos, PILLAR_HEIGHT - 0.4, 0.8 * t_sin });
-				_vertices.push_back({ 0.8 * t_cos, 0.4, 0.8 * t_sin });
-				_vertices.push_back({ t_cos, 0.2, t_sin });
-				_vertices.push_back({ t_cos, 0, t_sin });
-			
-				_normals.push_back({ t_cos, 0, t_sin });
-				_normals.push_back({ t_cos, -1, t_sin });
-				_normals.push_back({ t_cos, 1, t_sin });
+				_vertices.push_back({ cos_a, 0.5, sin_a });
+				_vertices.push_back({ cos_a, 0.5 - PILLAR_BASE_H, sin_a });
+				_vertices.push_back({ cos_a * PILLAR_BODY_R, 0.5 - PILLAR_BASE_H, sin_a * PILLAR_BODY_R });
+				_vertices.push_back({ cos_a * PILLAR_BODY_R, PILLAR_BASE_H - 0.5, sin_a * PILLAR_BODY_R });
+				_vertices.push_back({ cos_a, PILLAR_BASE_H - 0.5, sin_a });
+				_vertices.push_back({ cos_a, -0.5, sin_a });
+
+				_textures.push_back({ 1-double(i) / PILLAR_SEGMENTS, 0 });
+				_textures.push_back({ 1-double(i) / PILLAR_SEGMENTS, PILLAR_BASE_H });
+				_textures.push_back({ 1-double(i) / PILLAR_SEGMENTS, 1 - PILLAR_BASE_H });
+				_textures.push_back({ 1-double(i) / PILLAR_SEGMENTS, 1 });
+
+				_normals.push_back({ cos_a,0,sin_a });
+
+				_indices.push_back({ 6 * i + 1, 4 * i + 1, i });
+				_indices.push_back({ 6 * i, 4 * i, i });
+				_indices.push_back({ 6 * ig + 1, 4 * (i + 1) + 1, ig });
+
+				_indices.push_back({ 6 * ig, 4 * (i + 1), ig });
+				_indices.push_back({ 6 * ig + 1, 4 * (i + 1) + 1, ig });
+				_indices.push_back({ 6 * i, 4 * i, i });
+
+				_indices.push_back({ 6 * i + 2, 4 * i + 1, PILLAR_SEGMENTS });
+				_indices.push_back({ 6 * i + 1, 4 * i, PILLAR_SEGMENTS });
+				_indices.push_back({ 6 * ig + 2, 4 * (i + 1) + 1, PILLAR_SEGMENTS });
+
+				_indices.push_back({ 6 * ig + 1, 4 * (i + 1), PILLAR_SEGMENTS });
+				_indices.push_back({ 6 * ig + 2, 4 * (i + 1) + 1, PILLAR_SEGMENTS });
+				_indices.push_back({ 6 * i + 1, 4 * i, PILLAR_SEGMENTS });
+
+				_indices.push_back({ 6 * i + 3, 4 * i + 2, i });
+				_indices.push_back({ 6 * i + 2, 4 * i + 1, i });
+				_indices.push_back({ 6 * ig + 3, 4 * (i + 1) + 2, ig });
+
+				_indices.push_back({ 6 * ig + 2, 4 * (i + 1) + 1, ig });
+				_indices.push_back({ 6 * ig + 3, 4 * (i + 1) + 2, ig });
+				_indices.push_back({ 6 * i + 2, 4 * i + 1, i });
+
+				_indices.push_back({ 6 * i + 4, 4 * i + 3, PILLAR_SEGMENTS + 1 });
+				_indices.push_back({ 6 * i + 3, 4 * i + 2, PILLAR_SEGMENTS + 1 });
+				_indices.push_back({ 6 * ig + 4, 4 * (i + 1) + 3, PILLAR_SEGMENTS + 1 });
+
+				_indices.push_back({ 6 * ig + 3, 4 * (i + 1) + 2, PILLAR_SEGMENTS + 1 });
+				_indices.push_back({ 6 * ig + 4, 4 * (i + 1) + 3, PILLAR_SEGMENTS + 1 });
+				_indices.push_back({ 6 * i + 3, 4 * i + 2, PILLAR_SEGMENTS + 1 });
+
+				_indices.push_back({ 6 * i + 5, 4 * i + 3, i });
+				_indices.push_back({ 6 * i + 4, 4 * i + 2, i });
+				_indices.push_back({ 6 * ig + 5, 4 * (i + 1) + 3, ig });
+
+				_indices.push_back({ 6 * ig + 4, 4 * (i + 1) + 2, ig });
+				_indices.push_back({ 6 * ig + 5, 4 * (i + 1) + 3, ig });
+				_indices.push_back({ 6 * i + 4, 4 * i + 2, i });
 			}
-			for (unsigned i = 0; i < PILLAR_SEGMENTS; i++)
-			{
-				_indices.push_back({ 6 * i + 1, 3 * i });
-				_indices.push_back({ 6 * i,3 * i });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS), 3 * ((i + 1) % PILLAR_SEGMENTS) });
+			_textures.push_back({ 0, 0});
+			_textures.push_back({ 0, PILLAR_BASE_H});
+			_textures.push_back({ 0, 1 - PILLAR_BASE_H });
+			_textures.push_back({ 0, 1 });
 
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS), 3 * ((i + 1) % PILLAR_SEGMENTS) });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 1, 3 * ((i + 1) % PILLAR_SEGMENTS) });
-				_indices.push_back({ 6 * i + 1, 3 * i });
-			
-				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
-				_indices.push_back({ 6 * i + 1,3 * i + 1 });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 1, 3 * ((i + 1) % PILLAR_SEGMENTS) + 1 });
-
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 1, 3 * ((i + 1) % PILLAR_SEGMENTS) + 1 });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 2, 3 * ((i + 1) % PILLAR_SEGMENTS) + 1 });
-				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
-				
-				_indices.push_back({ 6 * i + 3, 3 * i });
-				_indices.push_back({ 6 * i + 2,3 * i });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 2, 3 * ((i + 1) % PILLAR_SEGMENTS) });
-
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 2, 3 * ((i + 1) % PILLAR_SEGMENTS) });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 3, 3 * ((i + 1) % PILLAR_SEGMENTS) });
-				_indices.push_back({ 6 * i + 3, 3 * i });
-				
-				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
-				_indices.push_back({ 6 * i + 3,3 * i + 2 });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 3, 3 * ((i + 1) % PILLAR_SEGMENTS) + 2 });
-
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 3, 3 * ((i + 1) % PILLAR_SEGMENTS) + 2 });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 4, 3 * ((i + 1) % PILLAR_SEGMENTS) + 2 });
-				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
-
-				_indices.push_back({ 6 * i + 5, 3 * i });
-				_indices.push_back({ 6 * i + 4,3 * i });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 4, 3 * ((i + 1) % PILLAR_SEGMENTS) });
-
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 4, 3 * ((i + 1) % PILLAR_SEGMENTS) });
-				_indices.push_back({ 6 * ((i + 1) % PILLAR_SEGMENTS) + 5, 3 * ((i + 1) % PILLAR_SEGMENTS) });
-				_indices.push_back({ 6 * i + 5, 3 * i });
-			}
+			_normals.push_back({ 0,-1,0 });
+			_normals.push_back({ 0,1,0 });
 		}
 		break;
 
 		case Entablature:
 		{
-			for (unsigned i = 0; i < 4; i++)
+			_vertices = {
+				{ -0.5,  -0.5,  -0.5 },
+				{ -0.5,  -0.5,   0.5 },
+				{ -0.5,   0.5,   0.5 },
+				{ -0.5,   0.5,  -0.5 },
+				{  0.5,   0.5,  -0.5 },
+				{  0.5,   0.5,   0.5 },
+				{  0.5,  -0.5,   0.5 },
+				{  0.5,  -0.5,  -0.5 },
+
+				{ -0.5,  -0.5 * ENTABLATURE_INDENT_H,  -0.5 },
+				{ -0.5,  -0.5 * ENTABLATURE_INDENT_H,   0.5 },
+				{ -0.5,   0.5 * ENTABLATURE_INDENT_H,   0.5 },
+				{ -0.5,   0.5 * ENTABLATURE_INDENT_H,  -0.5 },
+				{  0.5,   0.5 * ENTABLATURE_INDENT_H,  -0.5 },
+				{  0.5,   0.5 * ENTABLATURE_INDENT_H,   0.5 },
+				{  0.5,  -0.5 * ENTABLATURE_INDENT_H,   0.5 },
+				{  0.5,  -0.5 * ENTABLATURE_INDENT_H,  -0.5 },
+
+				{ -0.5 * ENTABLATURE_INDENT_D,  -0.5 * ENTABLATURE_INDENT_H,  -0.5 * ENTABLATURE_INDENT_D },
+				{ -0.5 * ENTABLATURE_INDENT_D,  -0.5 * ENTABLATURE_INDENT_H,   0.5 * ENTABLATURE_INDENT_D },
+				{ -0.5 * ENTABLATURE_INDENT_D,   0.5 * ENTABLATURE_INDENT_H,   0.5 * ENTABLATURE_INDENT_D },
+				{ -0.5 * ENTABLATURE_INDENT_D,   0.5 * ENTABLATURE_INDENT_H,  -0.5 * ENTABLATURE_INDENT_D },
+				{  0.5 * ENTABLATURE_INDENT_D,   0.5 * ENTABLATURE_INDENT_H,  -0.5 * ENTABLATURE_INDENT_D },
+				{  0.5 * ENTABLATURE_INDENT_D,   0.5 * ENTABLATURE_INDENT_H,   0.5 * ENTABLATURE_INDENT_D },
+				{  0.5 * ENTABLATURE_INDENT_D,  -0.5 * ENTABLATURE_INDENT_H,   0.5 * ENTABLATURE_INDENT_D },
+				{  0.5 * ENTABLATURE_INDENT_D,  -0.5 * ENTABLATURE_INDENT_H,  -0.5 * ENTABLATURE_INDENT_D }
+			};
+			const double tmp = (1-ENTABLATURE_INDENT_H)/2;
+			_textures = { {0, 0}, {0, tmp}, {0, 1-tmp}, {0, 1}, {1, 1}, {1, 1-tmp}, {1, tmp}, {1, 0} };
+			_normals = { {0,0,-1}, {0,0,1}, {0,-1,0}, {0,1,0}, {-1,0,0}, {1,0,0} };
+			_indices = {
+				//Begin Z+
+				{2,0,1}, {10,1,1}, {13,6,1},
+				{13,6,1}, {5,7,1}, {2,0,1},
+
+				{10,1,2}, {18,1,2}, {21,6,2},
+				{21,6,2}, {13,6,2}, {10,1,2},
+
+				{18,1,1}, {17,2,1}, {22,5,1},
+				{22,5,1}, {21,6,1}, {18,1,1},
+
+				{17,2,3}, {9,2,3}, {14,5,3},
+				{14,5,3}, {22,5,3}, {17,2,3},
+
+				{9,2,1}, {1,3,1}, {6,4,1},
+				{6,4,1}, {14,5,1}, {9,2,1},
+				//End Z+
+				
+				//Begin Z-
+				{4,0,0}, {12,1,0}, {11,6,0},
+				{11,6,0}, {3,7,0}, {4,0,0},
+
+				{12,1,2}, {20,1,2}, {19,6,2},
+				{19,6,2}, {11,6,2}, {12,1,2},
+
+				{20,1,0}, {23,2,0}, {16,5,0},
+				{16,5,0}, {19,6,0}, {20,1,0},
+
+				{23,2,3}, {15,2,3}, {8,5,3},
+				{8,5,3}, {16,5,3}, {23,2,3},
+
+				{15,2,0}, {7,3,0}, {0,4,0},
+				{0,4,0}, {8,5,0}, {15,2,0},
+				//End Z-
+
+				//Begin X-
+				{3,0,4}, {11,1,4}, {10,6,4},
+				{10,6,4}, {2,7,4}, {3,0,4},
+
+				{11,1,2}, {19,1,2}, {18,6,2},
+				{18,6,2}, {10,6,2}, {11,1,2},
+
+				{19,1,4}, {16,2,4}, {17,5,4},
+				{17,5,4}, {18,6,4}, {19,1,4},
+
+				{16,2,3}, {8,2,3}, {9,5,3},
+				{9,5,3}, {17,5,3}, {16,2,3},
+
+				{8,2,4}, {0,3,4}, {1,4,4},
+				{1,4,4}, {9,5,4}, {8,2,4},
+				//End X-
+
+				//Begin X+
+				{5,0,5}, {13,1,5}, {12,6,5},
+				{12,6,5}, {4,7,5}, {5,0,5},
+				
+				{13,1,2}, {21,1,2}, {20,6,2},
+				{20,6,2}, {12,6,2}, {13,1,2},
+
+				{21,1,5}, {22,2,5}, {23,5,5},
+				{23,5,5}, {20,6,5}, {21,1,5},
+
+				{22,2,3}, {14,2,3}, {15,5,3},
+				{15,5,3}, {23,5,3}, {22,2,3},
+
+				{14,2,5}, {6,3,5}, {7,4,5},
+				{7,4,5}, {15,5,5}, {14,2,5},
+				//End X+
+
+				//Begin Y+
+				{3,0,3},{2,3,3},{5,4,3},
+				{5,4,3},{4,7,3},{3,0,3},
+				//End Y+
+
+				//Begin Y-
+				{1,0,3},{0,3,3},{7,4,3},
+				{7,4,3},{6,7,3},{1,0,3},
+				//End Y-
+			};
+		}
+		break;
+
+		case ClockFace:
+		{
+			for (unsigned i = 0; i < CLOCKFACE_SEGMENTS; i++)
 			{
-				double t_cos = cos(PI * (i-0.5) / 2) / sqrt(2);
-				double t_sin = sin(PI * (i-0.5) / 2) / sqrt(2);
-				double t_cos_n = cos(PI * i / 2);
-				double t_sin_n = sin(PI * i / 2);
+				double cos_a = cos(2 * PI * i / PILLAR_SEGMENTS) / 2;
+				double sin_a = sin(2 * PI * i / PILLAR_SEGMENTS) / 2;
+				unsigned ig = (i + 1) % PILLAR_SEGMENTS;
 
-				_vertices.push_back({ t_cos, ENTABLATURE_HEIGHT, t_sin });
-				_vertices.push_back({ t_cos, ENTABLATURE_HEIGHT - 0.2, t_sin });
-				_vertices.push_back({ 0.95 * t_cos, ENTABLATURE_HEIGHT - 0.25, 0.95 * t_sin });
-				_vertices.push_back({ 0.95 * t_cos, 0.25, 0.95 * t_sin });
-				_vertices.push_back({ t_cos, 0.2, t_sin });
-				_vertices.push_back({ t_cos, 0, t_sin });
-
-				_normals.push_back({ t_cos_n, 0, t_sin_n });
-				_normals.push_back({ t_cos_n, -1, t_sin_n });
-				_normals.push_back({ t_cos_n, 1, t_sin_n });
+				_vertices.push_back({ cos_a, sin_a, 0 });
+				_textures.push_back({ 0.5 - cos_a,sin_a + 0.5 });
+				_indices.push_back({ i, i, 0 });
+				_indices.push_back({ ig, ig, 0 });
+				_indices.push_back({ PILLAR_SEGMENTS, PILLAR_SEGMENTS, 0 });
 			}
-			for (unsigned i = 0; i < 4; i++)
-			{
-				_indices.push_back({ 6 * i + 1, 3 * i });
-				_indices.push_back({ 6 * i,3 * i });
-				_indices.push_back({ 6 * ((i + 1) % 4), 3 * i });
-
-				_indices.push_back({ 6 * ((i + 1) % 4), 3 * i });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 1, 3 * i });
-				_indices.push_back({ 6 * i + 1, 3 * i });
-
-				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
-				_indices.push_back({ 6 * i + 1,3 * i + 1 });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 1, 3 * i + 1 });
-
-				_indices.push_back({ 6 * ((i + 1) % 4) + 1, 3 * i + 1 });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 2, 3 * i + 1 });
-				_indices.push_back({ 6 * i + 2, 3 * i + 1 });
-
-				_indices.push_back({ 6 * i + 3, 3 * i });
-				_indices.push_back({ 6 * i + 2,3 * i });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 2, 3 * i });
-
-				_indices.push_back({ 6 * ((i + 1) % 4) + 2, 3 * i });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 3, 3 * i });
-				_indices.push_back({ 6 * i + 3, 3 * i });
-
-				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
-				_indices.push_back({ 6 * i + 3,3 * i + 2 });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 3, 3 * i + 2 });
-
-				_indices.push_back({ 6 * ((i + 1) % 4) + 3, 3 * i + 2 });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 4, 3 * i + 2 });
-				_indices.push_back({ 6 * i + 4, 3 * i + 2 });
-
-				_indices.push_back({ 6 * i + 5, 3 * i });
-				_indices.push_back({ 6 * i + 4,3 * i });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 4, 3 * i });
-
-				_indices.push_back({ 6 * ((i + 1) % 4) + 4, 3 * i });
-				_indices.push_back({ 6 * ((i + 1) % 4) + 5, 3 * i });
-				_indices.push_back({ 6 * i + 5, 3 * i });
-			}
-			_normals.push_back({ 0,1,0 }); //12
-			_normals.push_back({ 0,-1,0 }); //13
-
-			_indices.push_back({ 12,12 });
-			_indices.push_back({ 6,12 });
-			_indices.push_back({ 0,12 });
-
-			_indices.push_back({ 0,12 });
-			_indices.push_back({ 18,12 });
-			_indices.push_back({ 12,12 });
-
-			_indices.push_back({ 5,13 });
-			_indices.push_back({ 11,13 });
-			_indices.push_back({ 17,13 });
-
-			_indices.push_back({ 5,13 });
-			_indices.push_back({ 17,13 });
-			_indices.push_back({ 23,13 });
+			_vertices.push_back({ 0,0,0 });
+			_textures.push_back({ 0.5,0.5 });
+			_normals.push_back({ 0,0,1 });
 		}
 		break;
 		}
@@ -366,47 +385,37 @@ public:
 				ss >> temp.x >> temp.y >> temp.z;
 				_normals.push_back(temp);
 			}
+			else if (prefix == "vt")
+			{
+				Vector2d temp;
+				ss >> temp.x >> temp.y;
+				_textures.push_back(temp);
+			}
 			else if (prefix == "f")
 			{
+				auto parseIndex = [](const std::string& token) 
+				{
+					face_index ret;
+					std::stringstream s(token);
+					s >> ret.vertex;
+					s.ignore(50, '/');
+					s >> ret.texture;
+					s.ignore(50, '/');
+					s >> ret.normal;
+					ret.vertex--;
+					ret.texture--;
+					ret.normal--;
+					//cout << ret.vertex << '\t' << ret.texture << '\t' << ret.normal << endl;
+					return ret;
+				};
+
 				string temp;
-				face_index index;
-				
 				ss >> temp;
-				{
-					stringstream fs(temp);
-
-					getline(fs, temp, '/');
-					index.vertex = stoi(temp) - 1;
-					getline(fs, temp, '/');
-					getline(fs, temp, '/');
-					index.normal = stoi(temp) - 1;
-
-					_indices.push_back(index);
-				}
+				_indices.push_back(parseIndex(temp));
 				ss >> temp;
-				{
-					stringstream fs(temp);
-
-					getline(fs, temp, '/');
-					index.vertex = stoi(temp) - 1;
-					getline(fs, temp, '/');
-					getline(fs, temp, '/');
-					index.normal = stoi(temp) - 1;
-
-					_indices.push_back(index);
-				}
+				_indices.push_back(parseIndex(temp));
 				ss >> temp;
-				{
-					stringstream fs(temp);
-
-					getline(fs, temp, '/');
-					index.vertex = stoi(temp) - 1;
-					getline(fs, temp, '/');
-					getline(fs, temp, '/');
-					index.normal = stoi(temp) - 1;
-
-					_indices.push_back(index);
-				}
+				_indices.push_back(parseIndex(temp));
 			}
 		}
 
@@ -424,18 +433,20 @@ public:
 		return _transform;
 	}
 
-	void Display()
+	void Display(GLuint textureObj = 0)
 	{
 		glPushMatrix();
 		_transform.Apply();
+		glBindTexture(GL_TEXTURE_2D, textureObj);
 		glBegin(GL_TRIANGLES);
-
 		for (auto index : _indices)
 		{
-			Vector3d normal = _normals[index.normal];
 			Vector3d vertex = _vertices[index.vertex];
+			Vector2d texture = _textures[index.texture];
+			Vector3d normal = _normals[index.normal];
 
 			glNormal3d(normal.x, normal.y, normal.z);
+			glTexCoord2d(texture.x, texture.y);
 			glVertex3d(vertex.x, vertex.y, vertex.z);
 		}
 
